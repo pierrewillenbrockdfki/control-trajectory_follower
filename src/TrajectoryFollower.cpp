@@ -15,6 +15,7 @@ TrajectoryFollower::TrajectoryFollower()
     followerStatus = TRAJECTORY_FINISHED;
     nearEnd = false;
     splineReferenceErrorCoefficient = 0.;
+    endSpeedDamping = 0.0;
 }
 
 TrajectoryFollower::TrajectoryFollower(const FollowerConfig& followerConfig)
@@ -25,6 +26,7 @@ TrajectoryFollower::TrajectoryFollower(const FollowerConfig& followerConfig)
       followerConf(followerConfig)
 {
     headingErrorTolerance = followerConf.headingErrorTolerance;
+    endSpeedDamping = followerConf.endSpeedDamping;
     followerStatus = TRAJECTORY_FINISHED;
     dampingCoefficient = base::unset< double >();
 
@@ -55,12 +57,14 @@ TrajectoryFollower::TrajectoryFollower(const FollowerConfig& followerConfig)
         splineReferenceErrorCoefficient = followerConf.splineReferenceErrorMarginCoefficient;
 }
 
-void TrajectoryFollower::setNewTrajectory(const SubTrajectory &trajectory, const base::Pose& robotPose)
+void TrajectoryFollower::setNewTrajectory(const SubTrajectory &trajectory, const base::Pose& robotPose, bool last)
 {
     if (!configured)
         throw std::runtime_error("TrajectoryFollower not configured.");
 
     controller->reset();
+
+    this->lastSubTrajectory = last;
 
     // Sets the trajectory
     this->trajectory = trajectory;
@@ -196,6 +200,16 @@ FollowerStatus TrajectoryFollower::traverseTrajectory(Motion2D &motionCmd, const
         if ((error < -headingErrorTolerance || error > headingErrorTolerance))
         {
             motionCmd.rotation = pointTurnDirection * followerConf.pointTurnVelocity;
+            if (endSpeedDamping > 0.001)
+            {
+                if(error < followerConf.pointTurnVelocity)
+                {
+                    motionCmd.rotation = pointTurnDirection * error*0.2*endSpeedDamping;
+                }
+            }
+            else {
+                motionCmd.rotation = pointTurnDirection * followerConf.pointTurnVelocity;
+            }
             followerData.cmd = motionCmd.toBaseMotion2D();
             return followerStatus;
         }
@@ -283,6 +297,13 @@ FollowerStatus TrajectoryFollower::traverseTrajectory(Motion2D &motionCmd, const
                 && std::signbit(lastAngleError) == std::signbit(angleError))
         {
             motionCmd.rotation = pointTurnDirection * followerConf.pointTurnVelocity;
+            if (endSpeedDamping > 0.001)
+            {
+                if(angleError < followerConf.pointTurnVelocity)
+                {
+                    motionCmd.rotation = pointTurnDirection * angleError*0.2*endSpeedDamping;
+                }
+            }
             followerData.cmd = motionCmd.toBaseMotion2D();
             return followerStatus;
         }
@@ -310,7 +331,13 @@ FollowerStatus TrajectoryFollower::traverseTrajectory(Motion2D &motionCmd, const
     
     motionCmd = controller->update(trajectory.getSpeed(), distanceError, angleError, trajectory.getCurvature(currentCurveParameter),
                                    trajectory.getVariationOfCurvature(currentCurveParameter));
-
+    if (lastSubTrajectory and distanceToEnd < 1.0)
+    {
+        if (endSpeedDamping > 0.001) {
+            motionCmd.translation *= distanceToEnd*endSpeedDamping;
+            motionCmd.rotation *= distanceToEnd*endSpeedDamping;
+        }
+    }
     // HACK: use damping factor to prevent oscillating steering behavior
     if (!base::isUnset<double>(followerConf.dampingAngleUpperLimit) && followerConf.dampingAngleUpperLimit > 0)
     {

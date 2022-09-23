@@ -200,11 +200,11 @@ FollowerStatus TrajectoryFollower::traverseTrajectory(Motion2D &motionCmd, const
         if ((error < -headingErrorTolerance || error > headingErrorTolerance))
         {
             motionCmd.rotation = pointTurnDirection * followerConf.pointTurnVelocity;
-            if (endSpeedDamping > 0.001)
+            if (lastSubTrajectory and endSpeedDamping > 0.001)
             {
-                if(error < followerConf.pointTurnVelocity)
+                if(fabs(error) < followerConf.pointTurnVelocity)
                 {
-                    motionCmd.rotation = pointTurnDirection * error*0.2*endSpeedDamping;
+                    motionCmd.rotation = pointTurnDirection * fabs(error)*0.2*endSpeedDamping;
                 }
             }
             else {
@@ -297,11 +297,11 @@ FollowerStatus TrajectoryFollower::traverseTrajectory(Motion2D &motionCmd, const
                 && std::signbit(lastAngleError) == std::signbit(angleError))
         {
             motionCmd.rotation = pointTurnDirection * followerConf.pointTurnVelocity;
-            if (endSpeedDamping > 0.001)
+            if (lastSubTrajectory and endSpeedDamping > 0.001)
             {
-                if(angleError < followerConf.pointTurnVelocity)
+                if(fabs(angleError) < followerConf.pointTurnVelocity)
                 {
-                    motionCmd.rotation = pointTurnDirection * angleError*0.2*endSpeedDamping;
+                    motionCmd.rotation = pointTurnDirection * fabs(angleError)*0.2*endSpeedDamping;
                 }
             }
             followerData.cmd = motionCmd.toBaseMotion2D();

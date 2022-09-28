@@ -88,6 +88,7 @@ private:
     bool lastSubTrajectory;
     double endSpeedDamping;
     std::unique_ptr<Controller> controller;
+    DriveMode lastDriveMode;
 };
 
 }

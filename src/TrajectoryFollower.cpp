@@ -164,7 +164,7 @@ FollowerStatus TrajectoryFollower::traverseTrajectory(Motion2D &motionCmd, const
 
     // Return if there is no trajectory to follow
     if(followerStatus == TRAJECTORY_FINISHED) {
-        LOG_INFO_S << "Trajectory follower not active";
+        //LOG_INFO_S << "Trajectory follower not active";
         return followerStatus;
     }
 
@@ -182,6 +182,7 @@ FollowerStatus TrajectoryFollower::traverseTrajectory(Motion2D &motionCmd, const
         if(diffVector.norm() > 0.3) {
             pointTurnDirection = 1.;
             followerStatus = TRAJECTORY_FINISHED;
+            LOG_INFO_S << "Skip TurnOnTheSpot since distance to trajectory is to high";
             return followerStatus;
         }
         double actualHeading = robotPose.getYaw();
@@ -320,6 +321,7 @@ FollowerStatus TrajectoryFollower::traverseTrajectory(Motion2D &motionCmd, const
             automaticPointTurn = false;
             pointTurnDirection = 1.;
             followerStatus = TRAJECTORY_FOLLOWING;
+            this->trajectory.driveMode = this->lastDriveMode;
         }
     }
 
@@ -375,6 +377,7 @@ bool TrajectoryFollower::checkTurnOnSpot()
         std::cout << "robot orientation : OUT OF BOUND ["  << angleError << ", " << followerConf.pointTurnStart << "]. starting point-turn" << std::endl;
         automaticPointTurn = true;
         followerStatus = EXEC_TURN_ON_SPOT;
+        this->lastDriveMode = this->trajectory.driveMode;
         this->trajectory.driveMode = ModeTurnOnTheSpot;
 
         if (angleError > 0)

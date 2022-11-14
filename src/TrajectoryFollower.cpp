@@ -190,7 +190,8 @@ FollowerStatus TrajectoryFollower::traverseTrajectory(Motion2D &motionCmd, const
 
         if (actualHeading < 0)
             actualHeading = 2*M_PI + actualHeading;
-
+        if (targetHeading < 0)
+            targetHeading = 2*M_PI + targetHeading;
         double error       = actualHeading - targetHeading;
 
         Eigen::AngleAxisd currentAxisRot(actualHeading,Eigen::Vector3d::UnitZ());

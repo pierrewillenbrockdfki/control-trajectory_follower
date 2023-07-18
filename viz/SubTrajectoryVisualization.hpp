@@ -49,5 +49,5 @@ namespace vizkit3d
         osg::ref_ptr<osg::PositionAttitudeTransform> geode; 
     };
 
-    VizkitQtPlugin(SubTrajectoryVisualization)
+    VizkitQtPluginHeaderDecls(SubTrajectoryVisualization)
 }

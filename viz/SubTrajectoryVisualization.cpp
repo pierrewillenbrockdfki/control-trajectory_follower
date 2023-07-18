@@ -111,4 +111,7 @@ void SubTrajectoryVisualization::setLineWidth(double line_width)
     emit propertyChanged("LineWidth");
 }
 
-
+namespace vizkit3d
+{
+    VizkitQtPluginImpl(SubTrajectoryVisualization)
+}

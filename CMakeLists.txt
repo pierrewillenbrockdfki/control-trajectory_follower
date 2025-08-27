@@ -1,6 +1,6 @@
 # CMakeLists.txt has to be located in the project folder and cmake has to be
 # executed from 'project/build' with 'cmake ../'.
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 project(trajectory_follower VERSION 0.1 DESCRIPTION "Trajectory Controller for Mobile Robots")
 find_package(Rock)
 set(ROCK_TEST_ENABLED ON)
